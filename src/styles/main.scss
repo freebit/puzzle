@@ -1,0 +1,94 @@
+html, body {
+  overflow-x: hidden;
+}
+
+$body-color: #f9f9fb;
+$puzzle-bg-color: #d0d0d0;
+
+$green-1: #D8FFBC;
+$green-2: #8AC858;
+$green-3: #83BE54;
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: #fff;
+  background-color: $body-color;
+}
+
+#app {
+  display: flex;
+  position: relative;
+  justify-content: center;
+  align-items: center;
+}
+
+.puzzle {
+
+  $size: 400px;
+
+  position: relative;
+  padding-top: 40px;
+
+  &__control {
+
+    $thumb-size: 25px;
+    $track-height: 10px;
+
+    position: relative;
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: transparent;
+    outline: none;
+    margin: 0;
+    margin-bottom: 30px;
+
+    @mixin range-track {
+      width: 100%;
+      height: $track-height;
+      cursor: pointer;
+      background-color: $puzzle-bg-color;
+      border-radius: 10px;
+    }
+
+    @mixin range-thumb {
+      position: relative;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      border: none;
+      width: $thumb-size;
+      height: $thumb-size;
+      margin-top: -(($thumb-size - $track-height) / 2);
+      border-radius: 50%;
+      background-color: $green-2;
+    }
+
+    &::-webkit-slider-runnable-track {
+      @include range-track();
+    }
+
+    &::-moz-range-track {
+      @include range-track();
+    }
+
+    &::-webkit-slider-thumb {
+      @include range-thumb;
+    }
+
+    &::-moz-range-thumb {
+      @include range-thumb;
+    }
+
+  }
+
+  &__wrapper {
+    display: block;
+    width: $size;
+    height: $size;
+    background-color: $puzzle-bg-color;
+    border-radius: 4px;
+  }
+}
+
+
