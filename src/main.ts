@@ -27,7 +27,10 @@ init({
 
 
 const mainImage = new Image()
-mainImage.onload = function(img) {
-  console.log('image - ', this)
+mainImage.width = 400
+mainImage.height = 400
+mainImage.onload = function onImageLoad(img) {
+  // const url = window.URL.createObjectURL(mainImage)
+  console.log('image -', mainImage.DOCUMENT_FRAGMENT_NODE)
 }
 mainImage.src = 'https://cs.pikabu.ru/images/jobseeker/logo2.png'
