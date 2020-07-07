@@ -3,9 +3,9 @@ export const drawTiles = (matrixSize: number, pictureSrc: string): void => {
   const fragment = document.createDocumentFragment();
 
   const { width: puzzleWidth, height: puzzleHeight} = puzzleWrapper.getBoundingClientRect()
-  const puzzlePadding = parseInt(getComputedStyle(puzzleWrapper).paddingTop, 10);
-  const realWidth = puzzleWidth - (puzzlePadding * 2)
-  const realHeight = puzzleHeight - (puzzlePadding * 2)
+  // const puzzlePadding = parseInt(getComputedStyle(puzzleWrapper).paddingTop, 10);
+  const realWidth = puzzleWidth
+  const realHeight = puzzleHeight
 
   // console.log('puzzle sizes -', realWidth, realHeight)
   // console.log('matrix size -', matrixSize)
@@ -17,9 +17,9 @@ export const drawTiles = (matrixSize: number, pictureSrc: string): void => {
   // console.log('emptyTile -', emptyTile)
 
 
-  const sizePx = (realWidth / matrixSize)
-  const sizePercent = 100 / (realWidth / (realWidth / matrixSize))
-  const paddingPercent = 100 / (realWidth / puzzlePadding)
+  // const sizePx = (puzzleWidth / matrixSize)
+  const sizePercent = 100 / (puzzleWidth / (puzzleWidth / matrixSize))
+  // const paddingPercent = 100 / (puzzleWidth / puzzlePadding)
 
   // console.log('tile size in px -', realWidth / matrixSize)
   // console.log('tile size in percent -', sizePercent)
@@ -37,8 +37,8 @@ export const drawTiles = (matrixSize: number, pictureSrc: string): void => {
       // tile.style.paddingBottom = `${Math.floor(sizePercent/2)}%`
 
 
-      tile.style.left = `${j * sizePercent + paddingPercent}%`
-      tile.style.top = `${i * sizePercent + paddingPercent}%`
+      tile.style.left = `${j * sizePercent}%`
+      tile.style.top = `${i * sizePercent}%`
       tilesPositions.push([tile.style.left, tile.style.top])
       tile.style.backgroundImage = `url(${pictureSrc})`
       tile.setAttribute('pos', `${position}`)
@@ -51,4 +51,14 @@ export const drawTiles = (matrixSize: number, pictureSrc: string): void => {
   // console.log('tiles - ', tilesPositions)
   puzzleWrapper.append(fragment)
 
+}
+
+export const loadImage = (url: string) => {
+  const image = new Image()
+  const promise = new Promise((resolve, reject) => {
+    image.onload = () => resolve(image)
+    image.onerror = () => reject(Error('Image loading error'))
+  })
+  image.src = url
+  return promise
 }

@@ -99,7 +99,8 @@ body {
     height: $size;
     background-color: $puzzle-bg-color;
     border-radius: 3px;
-    padding: 1px;
+    border: 1px solid $puzzle-bg-color;
+    // background-image: url('https://cs.pikabu.ru/images/jobseeker/logo2.png');
 
     .tile {
       position: absolute;
@@ -110,6 +111,7 @@ body {
       border: 1px solid;
       border-color: $green-lighter $green-darker $green-darker $green-lighter;
       background-repeat: no-repeat;
+      background-size: 580%;
     }
   }
 }
