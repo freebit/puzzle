@@ -1,10 +1,14 @@
 declare namespace Puzzle {
 
-
+  interface Picture {
+    src: string;
+    width: number;
+    height: number;
+  }
 
   interface AppParams {
     elem: string | HTMLElement;
-    picture: string;
+    picture: Picture;
     startMatrixSize?: number;
   }
 

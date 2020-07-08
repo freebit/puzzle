@@ -1,6 +1,6 @@
 import '@/styles/main.scss'
 
-import { drawTiles, loadImage } from './utils'
+import { drawTiles, loadImage, resizeImage } from './utils'
 
 const init = (params: Puzzle.AppParams): void => {
 
@@ -18,27 +18,19 @@ const init = (params: Puzzle.AppParams): void => {
 
 
 
-init({
-  elem: '#puzzle-wrapper',
-  picture: 'https://cs.pikabu.ru/images/jobseeker/logo2.png',
-  startMatrixSize: 5
-})
-
-
-
-// const mainImage = new Image()
-// mainImage.width = 400
-// mainImage.height = 400
-// mainImage.onload = function onImageLoad(img) {
-//   // const url = window.URL.createObjectURL(mainImage)
-//   console.log('image -', mainImage.DOCUMENT_FRAGMENT_NODE)
-// }
-// mainImage.src = 'https://cs.pikabu.ru/images/jobseeker/logo2.png'
 
 loadImage('https://cs.pikabu.ru/images/jobseeker/logo2.png')
-.then((image: HTMLImageElement) => {
-  console.log('image loaded ok -', image.width, image.height)
-})
-.catch((err) => {
-  console.log('image loaded fail -', err)
-})
+  .then((image: HTMLImageElement) => {
+    init({
+      elem: '#puzzle-wrapper',
+      picture: {
+        src: image.src,
+        width: image.width,
+        height: image.height
+      },
+      startMatrixSize: 5
+    })
+  })
+  .catch((err) => {
+    console.log('image loaded fail -', err)
+  })
