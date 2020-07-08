@@ -1,6 +1,6 @@
 import '@/styles/main.scss'
 
-import { createPuzzleState, drawTiles, loadImage } from './utils'
+import { loadImage, createPuzzleState, drawTiles, shuffleTiles } from './utils'
 
 const init = (params: Puzzle.AppParams): void => {
 
@@ -20,14 +20,18 @@ const init = (params: Puzzle.AppParams): void => {
     puzzleWrapper.style.setProperty('--bg-size', `${100 * matrixSize}%`);
     const state: Puzzle.State = createPuzzleState(matrixSize, puzzleWidth);
     drawTiles(state, puzzleWrapper)
-    console.log('state -', state)
+    setTimeout(() => {
+      shuffleTiles(state, puzzleWrapper)
+    }, 1000)
   })
-
 
   puzzleWrapper.style.setProperty('--bg-size', `${100 * params.startMatrixSize}%`);
   const state: Puzzle.State = createPuzzleState(params.startMatrixSize, puzzleWidth)
   drawTiles(state, puzzleWrapper)
-  console.log('state -', state)
+  setTimeout(() => {
+    shuffleTiles(state, puzzleWrapper)
+  }, 1000)
+
 }
 
 

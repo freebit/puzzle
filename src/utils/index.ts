@@ -1,3 +1,13 @@
+export const loadImage = (url: string) => {
+  const image = new Image()
+  const promise = new Promise((resolve, reject) => {
+    image.onload = () => resolve(image)
+    image.onerror = () => reject(Error('Image loading error'))
+  })
+  image.src = url
+  return promise
+}
+
 export const createPuzzleState = (matrixSize: number, puzzleSize: number): Puzzle.State => {
   const state: Puzzle.State = {
     tiles: [],
@@ -55,12 +65,22 @@ export const drawTiles = (state: Puzzle.State, container: HTMLElement) => {
   container.append(documentFragment);
 }
 
-export const loadImage = (url: string) => {
-  const image = new Image()
-  const promise = new Promise((resolve, reject) => {
-    image.onload = () => resolve(image)
-    image.onerror = () => reject(Error('Image loading error'))
-  })
-  image.src = url
-  return promise
+const shuffleArray = (arr: any) => arr.sort(() => Math.random() - 0.5);
+
+export const shuffleTiles = (state: Puzzle.State, container: HTMLElement): Array<Puzzle.TileData> => {
+  const tiles = [...state.tiles];
+  tiles.shift()
+  const shuffledTiles = shuffleArray(tiles);
+  const childTiles = Array.from(container.childNodes);
+
+  for(let i = 0; i < childTiles.length; i++) {
+    const childTile = childTiles[i] as HTMLElement
+
+    // childTile.style.willChange = 'left, top';
+    childTile.style.left = shuffledTiles[i].left;
+    childTile.style.top = shuffledTiles[i].top;
+    // childTile.style.willChange = 'auto';
+  }
+  return shuffledTiles;
 }
+

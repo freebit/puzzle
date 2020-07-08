@@ -72,7 +72,6 @@ body {
   // padding-top: 40px;
 
   &__control {
-
     $thumb-size: 25px;
     $track-height: 10px;
 
@@ -84,6 +83,7 @@ body {
     outline: none;
     margin: 0;
     margin-bottom: 30px;
+    cursor: pointer;
 
     @mixin range-track {
       width: 100%;
@@ -147,6 +147,7 @@ body {
       background-clip: padding-box;
       background-image: var(--bg-img);
       background-size: var(--bg-size);
+      transition: all ease 0.6s;
     }
   }
 }
