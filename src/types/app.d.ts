@@ -7,7 +7,7 @@ declare namespace Puzzle {
   }
 
   interface AppParams {
-    elem: string | HTMLElement;
+    elem: HTMLElement;
     picture: Picture;
     startMatrixSize?: number;
   }

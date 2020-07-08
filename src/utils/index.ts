@@ -1,21 +1,15 @@
-export const createPuzzleState = (matrixSize: number): Puzzle.State => {
+export const createPuzzleState = (matrixSize: number, puzzleSize: number): Puzzle.State => {
   const state: Puzzle.State = {
     tiles: [],
     emptyTile: null
   }
 
-  const puzzleWrapper = document.getElementById('puzzle-wrapper');
-  const { width: puzzleWidth } = puzzleWrapper.getBoundingClientRect();
-
   const rows = matrixSize;
   const cols = matrixSize;
 
-  const tileBordersSizePercent = 100 / (puzzleWidth / 2);
-  const tileSizePercent = 100 / (puzzleWidth / (puzzleWidth / matrixSize));
+  const tileBordersSizePercent = 100 / (puzzleSize / 2);
+  const tileSizePercent = 100 / (puzzleSize / (puzzleSize / matrixSize));
   const bgStepPercent = 100 / (matrixSize - 1)
-
-  // Указываем кастомные свойства для контейнера
-  puzzleWrapper.style.setProperty('--bg-size', `${100 * matrixSize}%`);
 
   for(let i = 0; i < rows; i++) {
     for(let j = 0; j < cols; j++) {
