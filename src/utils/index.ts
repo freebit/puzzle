@@ -1,53 +1,64 @@
-export const drawTiles = (matrixSize: number, picture: Puzzle.Picture): void => {
-  const puzzleWrapper = document.getElementById('puzzle-wrapper');
-  const fragment = document.createDocumentFragment();
-  const { src: pictureSrc, width: pictureWidth, height: pictureHeight } = picture;
-  const { width: puzzleWidth, height: puzzleHeight} = puzzleWrapper.getBoundingClientRect();
+export const createPuzzleState = (matrixSize: number): Puzzle.State => {
+  const state: Puzzle.State = {
+    tiles: [],
+    emptyTile: null
+  }
 
-  const tilesPositions = [];
+  const puzzleWrapper = document.getElementById('puzzle-wrapper');
+  const { width: puzzleWidth } = puzzleWrapper.getBoundingClientRect();
 
   const rows = matrixSize;
   const cols = matrixSize;
-  const emptyTile = rows * cols - 1;
+
   const tileBordersSizePercent = 100 / (puzzleWidth / 2);
   const tileSizePercent = 100 / (puzzleWidth / (puzzleWidth / matrixSize));
   const bgStepPercent = 100 / (matrixSize - 1)
 
-
+  // Указываем кастомные свойства для контейнера
   puzzleWrapper.style.setProperty('--bg-size', `${100 * matrixSize}%`);
-  puzzleWrapper.style.setProperty('--bg-img', `url(${pictureSrc})`);
-
-  // console.log('picture size px - ', pictureWidth)
-  // console.log('puzzle size px -', puzzleWidth)
-  // console.log('tile size % -', tileSizePercent)
 
   for(let i = 0; i < rows; i++) {
     for(let j = 0; j < cols; j++) {
-      const tile = document.createElement('div');
       const idx = (i * cols) + j;
+      state.tiles.push({ idx,
+        size: `${tileSizePercent - tileBordersSizePercent}%`,
+        left: `${j * tileSizePercent}%`,
+        top: `${i * tileSizePercent}%`,
+        bgPosition: `${j * bgStepPercent}% ${i * bgStepPercent}%`
+      });
 
-      tile.setAttribute('pos', `${idx}`);
-      tile.classList.add('tile');
-      tile.style.width = `${tileSizePercent - tileBordersSizePercent}%`;
-      tile.style.height = `${tileSizePercent -tileBordersSizePercent}%`;
-
-      tile.style.left = `${j * tileSizePercent}%`;
-      tile.style.top = `${i * tileSizePercent}%`;
-
-      tile.style.backgroundPosition = `${j * bgStepPercent}% ${i * bgStepPercent}%`;
-
-      tilesPositions.push([tile.style.left, tile.style.top]);
-
-      if(idx === emptyTile) continue;
-
-      fragment.append(tile);
+      // если это последняя колонка в последней строке
+      if(idx === rows * cols - 1) {
+        const emptyTile: Puzzle.TileData = state.tiles.slice(-1)[0]
+        state.emptyTile = state.tiles.slice(-1)[0]
+        continue;
+      }
     }
   }
 
-  puzzleWrapper.innerHTML = '';
-  // console.log('tiles - ', tilesPositions);
-  puzzleWrapper.append(fragment);
+  return state;
+}
 
+export const drawTiles = (state: Puzzle.State, container: HTMLElement) => {
+  const documentFragment = document.createDocumentFragment();
+
+  for (const tileData of state.tiles) {
+    const tile = document.createElement('div');
+    tile.classList.add('tile');
+    tile.setAttribute('idx', `${tileData.idx}`);
+    tile.style.width = tileData.size;
+    tile.style.height = tileData.size;
+    tile.style.left = tileData.left;
+    tile.style.top = tileData.top;
+    tile.style.backgroundPosition = tileData.bgPosition;
+
+    if(tileData.idx === state.emptyTile.idx) continue;
+
+    documentFragment.appendChild(tile);
+  }
+
+  container.innerHTML = '';
+  container.append(documentFragment);
 }
 
 export const loadImage = (url: string) => {
@@ -58,17 +69,4 @@ export const loadImage = (url: string) => {
   })
   image.src = url
   return promise
-}
-
-export const resizeImage = (image: HTMLImageElement, size: number): string => {
-  const canvas = document.createElement('canvas')
-  const ctx = canvas.getContext('2d')
-  canvas.width = size
-  canvas.height = size
-  ctx.drawImage(image, 0, 0, size, size)
-
-  const { src } = image
-  const ext = src.split('.').slice(-1)[0]
-
-  return canvas.toDataURL(`image/${ext}`)
 }
