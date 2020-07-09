@@ -1,37 +1,40 @@
 import '@/styles/main.scss'
 
-import { loadImage, createPuzzleState, drawTiles, shuffleTiles } from './utils'
+import { loadImage, createState, drawTiles, shuffleTiles, calcActiveTilesPositions } from './utils'
 
-const init = (params: Puzzle.AppParams): void => {
+const startGame = function (matrixSize: number, puzzleElem: HTMLElement) {
+  /* Указываем background-size для контейнера,
+    а значит для всех плиток (нужно для правильной отрисовки картинки в плитке)
+  */
+  puzzleElem.style.setProperty('--bg-size', `${100 * matrixSize}%`);
+  const puzzleWidth = puzzleElem.offsetWidth;
+
+  const state: Puzzle.State = createState(matrixSize, puzzleWidth)
+  drawTiles(state, puzzleElem)
+  // console.log('state before -', state.tiles)
+  setTimeout(() => {
+    shuffleTiles(state, puzzleElem)
+    calcActiveTilesPositions(state)
+    console.log('state after -', state)
+  }, 1000)
+}
+
+const init = function (params: Puzzle.AppParams): void {
 
   const control: HTMLInputElement = document.querySelector('#control');
   const puzzleWrapper: HTMLElement = params.elem;
-  const { width: puzzleWidth } = puzzleWrapper.getBoundingClientRect();
 
   // Указываем backgraund-image для контейнера, откуда его получит каждая плитка
-  puzzleWrapper.style.setProperty('--bg-img', `url(${params.picture.src})`);
-
+  puzzleWrapper.style.setProperty('--bg-img', `url(${params.picture})`);
+  // выставляем ползунок
   control.value = params.startMatrixSize.toString()
 
-  control.addEventListener('change', (evt) => {
+  control.addEventListener('change', () => {
     const matrixSize = Number(control.value);
-
-    // Указываем background-size для контейнера, а значит для всех плиток
-    puzzleWrapper.style.setProperty('--bg-size', `${100 * matrixSize}%`);
-    const state: Puzzle.State = createPuzzleState(matrixSize, puzzleWidth);
-    drawTiles(state, puzzleWrapper)
-    setTimeout(() => {
-      shuffleTiles(state, puzzleWrapper)
-    }, 1000)
+    startGame(matrixSize, puzzleWrapper)
   })
 
-  puzzleWrapper.style.setProperty('--bg-size', `${100 * params.startMatrixSize}%`);
-  const state: Puzzle.State = createPuzzleState(params.startMatrixSize, puzzleWidth)
-  drawTiles(state, puzzleWrapper)
-  setTimeout(() => {
-    shuffleTiles(state, puzzleWrapper)
-  }, 1000)
-
+  startGame(params.startMatrixSize, puzzleWrapper)
 }
 
 
@@ -39,11 +42,7 @@ loadImage('https://cs.pikabu.ru/images/jobseeker/logo2.png')
   .then((image: HTMLImageElement) => {
     init({
       elem: document.getElementById('puzzle-wrapper'),
-      picture: {
-        src: 'https://cs.pikabu.ru/images/jobseeker/logo2.png',
-        width: 0,
-        height: 0
-      },
+      picture: 'https://cs.pikabu.ru/images/jobseeker/logo2.png',
       startMatrixSize: 5
     })
   })

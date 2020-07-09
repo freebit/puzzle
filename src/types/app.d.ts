@@ -1,28 +1,25 @@
 declare namespace Puzzle {
 
-  interface Picture {
-    src: string;
-    width: number;
-    height: number;
-  }
-
   interface AppParams {
     elem: HTMLElement;
-    picture: Picture;
+    picture: string;
     startMatrixSize?: number;
   }
 
   interface TileData {
-    idx?: number;
+    position?: number;
     size?: string;
     left: string;
     top: string;
     bgPosition?: string;
+    empty?: boolean;
   }
 
   interface State {
+    matrixSize: number;
     tiles: Array<TileData>;
-    emptyTile: TileData | null;
+    emptyTile?: TileData | null;
+    activeTilesPositions?: Array<number>;
   }
 
 }
