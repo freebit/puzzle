@@ -127,3 +127,45 @@ export const calcActiveTilesPositions = (state: Puzzle.State): Array<number> => 
   state.activeTilesPositions = activeTiles;
   return activeTiles;
 }
+
+
+export const tileClickHandler = (state: Puzzle.State, tile: HTMLElement) => {
+  const tilePosition = Number(tile.getAttribute('position'));
+
+  const onTransitionEnd = () => {
+    tile.classList.remove('to-step');
+    tile.classList.remove('shake')
+    tile.removeEventListener('transitionend', onTransitionEnd)
+  }
+
+  // если можно двигать
+  if(state.activeTilesPositions.includes(tilePosition)) {
+    tile.addEventListener('transitionend', (evt) => onTransitionEnd())
+    tile.classList.add('to-step')
+
+    // кэшируем свойства
+    const cache: Puzzle.TileData = {
+      left: tile.style.left,
+      top: tile.style.top,
+      position: tilePosition
+    }
+
+    // меняем позицию
+    tile.style.left = state.emptyTile.left;
+    tile.style.top = state.emptyTile.top;
+    tile.setAttribute('position', `${state.emptyTile.position}`);
+
+    //обновляем emptyTile
+    state.emptyTile.position = cache.position;
+    state.emptyTile.left = cache.left;
+    state.emptyTile.top = cache.top;
+
+    calcActiveTilesPositions(state);
+  }
+  // если нельзя двигать
+  else {
+    tile.addEventListener('animationend', (evt) => onTransitionEnd())
+    tile.classList.add('shake');
+  }
+
+}

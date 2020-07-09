@@ -1,21 +1,21 @@
 import '@/styles/main.scss'
 
-import { loadImage, createState, drawTiles, shuffleTiles, calcActiveTilesPositions } from './utils'
+import { loadImage, createState, drawTiles, shuffleTiles, calcActiveTilesPositions, tileClickHandler } from './utils'
 
-const startGame = function (matrixSize: number, puzzleElem: HTMLElement) {
+const startGame = function (state: Puzzle.State, puzzleElem: HTMLElement) {
   /* Указываем background-size для контейнера,
     а значит для всех плиток (нужно для правильной отрисовки картинки в плитке)
   */
-  puzzleElem.style.setProperty('--bg-size', `${100 * matrixSize}%`);
+  puzzleElem.style.setProperty('--bg-size', `${100 * state.matrixSize}%`);
   const puzzleWidth = puzzleElem.offsetWidth;
 
-  const state: Puzzle.State = createState(matrixSize, puzzleWidth)
+
   drawTiles(state, puzzleElem)
   // console.log('state before -', state.tiles)
   setTimeout(() => {
     shuffleTiles(state, puzzleElem)
     calcActiveTilesPositions(state)
-    console.log('state after -', state)
+    // console.log('state after -', state)
   }, 1000)
 }
 
@@ -29,12 +29,22 @@ const init = function (params: Puzzle.AppParams): void {
   // выставляем ползунок
   control.value = params.startMatrixSize.toString()
 
+  let state: Puzzle.State = createState(params.startMatrixSize, puzzleWrapper.offsetWidth)
+
   control.addEventListener('change', () => {
     const matrixSize = Number(control.value);
-    startGame(matrixSize, puzzleWrapper)
+    state = createState(matrixSize, puzzleWrapper.offsetWidth)
+    startGame(state, puzzleWrapper)
   })
 
-  startGame(params.startMatrixSize, puzzleWrapper)
+  puzzleWrapper.addEventListener('click', (evt) => {
+    const target = evt.target as HTMLElement
+    if(target.classList.contains('tile')) {
+      tileClickHandler(state, target)
+    }
+  })
+
+  startGame(state, puzzleWrapper)
 }
 
 
