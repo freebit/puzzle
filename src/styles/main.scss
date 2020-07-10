@@ -103,6 +103,7 @@ body {
       margin-top: -(($thumb-size - $track-height) / 2);
       border-radius: 50%;
       background-color: $green-base;
+      transition: background-color ease .3s;
     }
 
     &::-webkit-slider-runnable-track {
@@ -117,8 +118,16 @@ body {
       @include range-thumb;
     }
 
+    &[disabled]::-webkit-slider-thumb {
+      background-color: $puzzle-bg-color;
+    }
+
     &::-moz-range-thumb {
       @include range-thumb;
+    }
+
+    &[disabled]::-moz-range-thumb {
+      background-color: $puzzle-bg-color;
     }
 
   }

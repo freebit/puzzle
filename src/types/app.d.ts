@@ -1,13 +1,13 @@
 declare namespace Puzzle {
 
   interface AppParams {
-    elem: HTMLElement;
+    container: HTMLElement;
     picture: string;
     startMatrixSize?: number;
   }
 
   interface TileData {
-    position?: number;
+    position: number;
     size?: string;
     left: string;
     top: string;

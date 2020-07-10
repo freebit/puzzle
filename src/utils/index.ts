@@ -1,3 +1,5 @@
+import State from '@/State'
+
 export const loadImage = (url: string) => {
   const image = new Image()
   const promise = new Promise((resolve, reject) => {
@@ -8,44 +10,11 @@ export const loadImage = (url: string) => {
   return promise
 }
 
-export const createState = (matrixSize: number, puzzleSize: number): Puzzle.State => {
-  const state: Puzzle.State = {
-    matrixSize: matrixSize,
-    tiles: [],
-    emptyTile: null
-  }
 
-  const rows = matrixSize;
-  const cols = matrixSize;
-  const bottomRight = rows * cols
-
-  const tileBordersSizePercent = 100 / (puzzleSize / 2);
-  const tileSizePercent = 100 / (puzzleSize / (puzzleSize / matrixSize));
-  const bgStepPercent = 100 / (matrixSize - 1)
-
-  for(let i = 0; i < rows; i++) {
-    for(let j = 0; j < cols; j++) {
-      const position = ((i * cols) + j) + 1;
-      const tileData: Puzzle.TileData = {
-        position,
-        size: `${tileSizePercent - tileBordersSizePercent}%`,
-        left: `${j * tileSizePercent}%`,
-        top: `${i * tileSizePercent}%`,
-        bgPosition: `${j * bgStepPercent}% ${i * bgStepPercent}%`
-      };
-      // если это последняя колонка в последней строке
-      (position === bottomRight) && (tileData.empty = true)
-      state.tiles.push(tileData)
-    }
-  }
-  state.emptyTile = state.tiles[bottomRight]
-  return state;
-}
-
-export const drawTiles = (state: Puzzle.State, container: HTMLElement) => {
+export const drawTiles = (container: HTMLElement) => {
   const documentFragment = document.createDocumentFragment();
 
-  for (const tileData of state.tiles) {
+  for (const tileData of State.Tiles) {
     const tile = document.createElement('div');
     tile.classList.add('tile');
     tile.setAttribute('position', `${tileData.position}`);
@@ -65,13 +34,12 @@ export const drawTiles = (state: Puzzle.State, container: HTMLElement) => {
 }
 
 
-export const shuffleTiles = (state: Puzzle.State, container: HTMLElement): Puzzle.State => {
+export const drawShuffleTiles = (container: HTMLElement) => {
   // на время перемешивания убираем верхнюю левую плитку, делаем ее пустой
-  const topLeftTile = state.tiles.shift()
+  const topLeftTile = State.Tiles.shift()
   topLeftTile.empty = true
 
-  // перемешиваем
-  state.tiles.sort(() => Math.random() - 0.5);
+  State.shuffleTiles()
 
   const childTiles = Array.from(container.childNodes);
 
@@ -79,57 +47,19 @@ export const shuffleTiles = (state: Puzzle.State, container: HTMLElement): Puzzl
     const childTile = childTiles[i] as HTMLElement
 
     // childTile.style.willChange = 'left, top';
-    childTile.setAttribute('position', `${state.tiles[i].position}`)
-    childTile.style.left = state.tiles[i].left;
-    childTile.style.top = state.tiles[i].top;
-    state.tiles[i].empty && (delete state.tiles[i].empty);
+    childTile.setAttribute('position', `${State.Tiles[i].position}`)
+    childTile.style.left = State.Tiles[i].left;
+    childTile.style.top = State.Tiles[i].top;
+    State.Tiles[i].empty && (delete State.Tiles[i].empty);
     // childTile.style.willChange = 'auto';
   }
-  // возвращаем пустую плитку в начало (так нагляднее, чем unshift())
-  state.tiles = [topLeftTile, ...state.tiles]
-  state.emptyTile = topLeftTile
-  return state;
-}
 
-export const calcActiveTilesPositions = (state: Puzzle.State): Array<number> => {
-
-  enum PlaceInRow {
-    Start = 'start',
-    Middle = 'middle',
-    End = 'end'
-  }
-  const activeTiles = [];
-  const { matrixSize } = state;
-  const { position: emptyPosition } = state.emptyTile;
-
-  const mod = emptyPosition % matrixSize;
-  const div = emptyPosition / matrixSize;
-
-  const row = Number.isInteger(div) ? div : Math.ceil(div);
-  const placeInRow = (mod === 1) ? PlaceInRow.Start : (mod === 0) ? PlaceInRow.End : PlaceInRow.Middle;
-
-  switch (placeInRow) {
-    case PlaceInRow.Start:
-      activeTiles.push(emptyPosition + 1);
-      break;
-    case PlaceInRow.Middle:
-      activeTiles.push(emptyPosition - 1);
-      activeTiles.push(emptyPosition + 1);
-      break;
-    case PlaceInRow.End:
-      activeTiles.push(emptyPosition - 1);
-      break;
-  }
-
-  if (row > 1) activeTiles.push(emptyPosition - matrixSize);
-  if (row < matrixSize) activeTiles.push(emptyPosition + matrixSize);
-
-  state.activeTilesPositions = activeTiles;
-  return activeTiles;
+  State.updateTiles([topLeftTile, ...State.Tiles])
+  State.updateEmptyTile(topLeftTile)
 }
 
 
-export const tileClickHandler = (state: Puzzle.State, tile: HTMLElement) => {
+export const tileClickHandler = (tile: HTMLElement) => {
   const tilePosition = Number(tile.getAttribute('position'));
 
   const onTransitionEnd = () => {
@@ -139,11 +69,11 @@ export const tileClickHandler = (state: Puzzle.State, tile: HTMLElement) => {
   }
 
   // если можно двигать
-  if(state.activeTilesPositions.includes(tilePosition)) {
+  if(State.ActiveTilePositions.includes(tilePosition)) {
     tile.addEventListener('transitionend', (evt) => onTransitionEnd())
     tile.classList.add('to-step')
 
-    // кэшируем свойства
+    // кэшируем
     const cache: Puzzle.TileData = {
       left: tile.style.left,
       top: tile.style.top,
@@ -151,16 +81,12 @@ export const tileClickHandler = (state: Puzzle.State, tile: HTMLElement) => {
     }
 
     // меняем позицию
-    tile.style.left = state.emptyTile.left;
-    tile.style.top = state.emptyTile.top;
-    tile.setAttribute('position', `${state.emptyTile.position}`);
+    tile.style.left = State.EmptyTile.left;
+    tile.style.top = State.EmptyTile.top;
+    tile.setAttribute('position', `${State.EmptyTile.position}`);
 
-    //обновляем emptyTile
-    state.emptyTile.position = cache.position;
-    state.emptyTile.left = cache.left;
-    state.emptyTile.top = cache.top;
-
-    calcActiveTilesPositions(state);
+    State.updateEmptyTile(cache)
+    State.calcActiveTilePositions()
   }
   // если нельзя двигать
   else {
