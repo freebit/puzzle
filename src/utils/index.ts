@@ -14,17 +14,16 @@ export const loadImage = (url: string) => {
 export const drawTiles = (container: HTMLElement) => {
   const documentFragment = document.createDocumentFragment();
 
-  for (const tileData of State.Tiles) {
+  for(let i = 0; i < State.Tiles.length; i++) {
+    const tileData = State.Tiles[i];
     const tile = document.createElement('div');
     tile.classList.add('tile');
-    tile.setAttribute('position', `${tileData.position}`);
+    tile.setAttribute('idx', `${tileData.idx}`);
     tile.style.width = tileData.size;
     tile.style.height = tileData.size;
-    tile.style.left = tileData.left;
     tile.style.top = tileData.top;
+    tile.style.left = tileData.left;
     tile.style.backgroundPosition = tileData.bgPosition;
-
-    if(tileData.empty) continue;
 
     documentFragment.appendChild(tile);
   }
@@ -35,32 +34,22 @@ export const drawTiles = (container: HTMLElement) => {
 
 
 export const drawShuffleTiles = (container: HTMLElement) => {
-  // на время перемешивания убираем верхнюю левую плитку, делаем ее пустой
-  const topLeftTile = State.Tiles.shift()
-  topLeftTile.empty = true
-
-  State.shuffleTiles()
 
   const childTiles = Array.from(container.childNodes);
-
   for(let i = 0; i < childTiles.length; i++) {
     const childTile = childTiles[i] as HTMLElement
-
-    // childTile.style.willChange = 'left, top';
-    childTile.setAttribute('position', `${State.Tiles[i].position}`)
+    childTile.setAttribute('idx', `${State.Tiles[i].idx}`)
     childTile.style.left = State.Tiles[i].left;
     childTile.style.top = State.Tiles[i].top;
-    State.Tiles[i].empty && (delete State.Tiles[i].empty);
-    // childTile.style.willChange = 'auto';
+
+    State.updateTileBgPosition(i, childTile.style.backgroundPosition);
   }
 
-  State.updateTiles([topLeftTile, ...State.Tiles])
-  State.updateEmptyTile(topLeftTile)
 }
 
 
 export const tileClickHandler = (tile: HTMLElement) => {
-  const tilePosition = Number(tile.getAttribute('position'));
+  const tileIdx = Number(tile.getAttribute('idx'));
 
   const onTransitionEnd = () => {
     tile.classList.remove('to-step');
@@ -69,24 +58,24 @@ export const tileClickHandler = (tile: HTMLElement) => {
   }
 
   // если можно двигать
-  if(State.ActiveTilePositions.includes(tilePosition)) {
+  if(State.ActiveTileIdx.includes(tileIdx)) {
     tile.addEventListener('transitionend', (evt) => onTransitionEnd())
     tile.classList.add('to-step')
 
     // кэшируем
-    const cache: Puzzle.TileData = {
+    const newEmptyTile: Puzzle.TileData = {
+      idx: tileIdx,
       left: tile.style.left,
       top: tile.style.top,
-      position: tilePosition
+      bgPosition: tile.style.backgroundPosition
     }
 
     // меняем позицию
     tile.style.left = State.EmptyTile.left;
     tile.style.top = State.EmptyTile.top;
-    tile.setAttribute('position', `${State.EmptyTile.position}`);
+    tile.setAttribute('idx', `${State.EmptyTile.idx}`);
 
-    State.updateEmptyTile(cache)
-    State.calcActiveTilePositions()
+    State.updateAfterMove(newEmptyTile)
   }
   // если нельзя двигать
   else {

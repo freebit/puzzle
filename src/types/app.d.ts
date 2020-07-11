@@ -6,20 +6,15 @@ declare namespace Puzzle {
     startMatrixSize?: number;
   }
 
-  interface TileData {
-    position: number;
-    size?: string;
-    left: string;
-    top: string;
-    bgPosition?: string;
-    empty?: boolean;
+  interface TilePosition {
+    idx: number;
+    top?: string;
+    left?: string;
   }
 
-  interface State {
-    matrixSize: number;
-    tiles: Array<TileData>;
-    emptyTile?: TileData | null;
-    activeTilesPositions?: Array<number>;
+  interface TileData extends TilePosition {
+    size?: string;
+    bgPosition?: string;
   }
 
 }
