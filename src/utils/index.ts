@@ -4,7 +4,7 @@ export const loadImage = (url: string) => {
   const image = new Image()
   const promise = new Promise((resolve, reject) => {
     image.onload = () => resolve(image)
-    image.onerror = () => reject(Error('Image loading error'))
+    image.onerror = () => reject(Error(`Loading error - ${image.src}`))
   })
   image.src = url
   return promise
@@ -58,7 +58,7 @@ export const tileClickHandler = (tile: HTMLElement) => {
   }
 
   // если можно двигать
-  if(State.ActiveTileIdx.includes(tileIdx)) {
+  if(State.canMovieTile(tileIdx)) {
     tile.addEventListener('transitionend', (evt) => onTransitionEnd())
     tile.classList.add('to-step')
 
@@ -75,12 +75,49 @@ export const tileClickHandler = (tile: HTMLElement) => {
     tile.style.top = State.EmptyTile.top;
     tile.setAttribute('idx', `${State.EmptyTile.idx}`);
 
+    State.pushHistoryState({from: newEmptyTile, toIdx: State.EmptyTile.idx})
     State.updateAfterMove(newEmptyTile)
   }
   // если нельзя двигать
   else {
     tile.addEventListener('animationend', (evt) => onTransitionEnd())
     tile.classList.add('shake');
+  }
+
+}
+
+export const putTileBack = (index: number) => {
+  // console.log('putTileBack -', data.toIdx)
+  const tileData = State.TileSteps[index]
+  if (!tileData) return
+
+  const tileIdx = tileData.toIdx;
+  const tile: HTMLElement = document.querySelector(`[idx="${tileIdx}"]`)
+
+  const onTransitionEnd = () => {
+    tile.classList.remove('to-step');
+    tile.removeEventListener('transitionend', onTransitionEnd)
+  }
+
+  if (tile) {
+    tile.addEventListener('transitionend', (evt) => onTransitionEnd())
+    tile.classList.add('to-step')
+
+    // кэшируем
+    const newEmptyTile: Puzzle.TileData = {
+      idx: tileIdx,
+      left: tile.style.left,
+      top: tile.style.top,
+      bgPosition: tile.style.backgroundPosition
+    }
+
+    // меняем позицию
+    tile.style.left = tileData.from.left;
+    tile.style.top = tileData.from.top;
+    tile.setAttribute('idx', `${tileData.from.idx}`);
+
+    State.popHistoryState()
+    State.updateAfterMove(newEmptyTile)
   }
 
 }

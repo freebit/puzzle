@@ -3,17 +3,15 @@ class State {
   private matrixSize: number;
   private tiles: Array<Puzzle.TileData>;
   private emptyTile: Puzzle.TileData;
-  private activeTileIdx: Array<number>;
+  private activeTilesIdx: Array<number>;
+
+  private tileSteps: Array<Puzzle.TileStep>;
 
   constructor() {
     this.matrixSize = null;
     this.tiles = [];
-    this.emptyTile = {
-      idx: null,
-      top: null,
-      left: null
-    }
-    this.activeTileIdx = []
+    this.activeTilesIdx = [];
+    this.tileSteps = [];
   }
 
   public checkHash (): boolean {
@@ -26,7 +24,8 @@ class State {
           matrixSize: this.matrixSize,
           tiles: this.tiles,
           emptyTile: this.emptyTile,
-          activeTileIdx: this.activeTileIdx
+          activeTilesIdx: this.activeTilesIdx,
+          // tileSteps: this.tileSteps
         } = JSON.parse(decodedState))
 
         console.log('state from hash -', this)
@@ -43,9 +42,12 @@ class State {
 
   }
 
-  public saveToHash () {
-    location.hash = btoa(this.dataToString());
-    console.log('saved to hash')
+  public async saveToHash () {
+    const hash = `#${btoa(this.dataToString())}`
+    history.pushState(null, '', hash)
+
+    // location.hash = btoa(this.dataToString())
+    console.log('save hash history state - ', window.history.state)
   }
 
   public initialize (matrixSize: number, puzzleSize: number) {
@@ -78,11 +80,11 @@ class State {
     }
 
     this.matrixSize = matrixSize;
-    this.calcActiveTilePositions();
+    this.calcactiveTilesIdx();
   }
 
   public shuffleTiles () {
-    // вернем пустой тайл
+    // вернем пустой тайл в конец массива
     this.tiles.push(this.emptyTile)
 
     // делаем верхнюю левую плитку пустой
@@ -93,23 +95,47 @@ class State {
 
     // извлекаем пустой тайл
     this.tiles = this.tiles.filter((tile) => tile.idx !== this.emptyTile.idx)
-    this.calcActiveTilePositions();
-
+    this.calcactiveTilesIdx();
   }
 
   public updateTileBgPosition (index: number, bgPosition: string) {
     this.tiles[index].bgPosition = bgPosition;
   }
 
+  public canMovieTile (tileIdx: number): boolean {
+    return this.activeTilesIdx.includes(tileIdx);
+  }
+
   public updateAfterMove (newEmptyTile: Puzzle.TileData) {
     const removableIndex = this.tiles.findIndex((tile) => tile.idx === newEmptyTile.idx)
     this.emptyTile.bgPosition = newEmptyTile.bgPosition;
     this.emptyTile = this.tiles.splice(removableIndex, 1, this.emptyTile)[0];
-    this.calcActiveTilePositions();
+    this.calcactiveTilesIdx();
     this.saveToHash();
   }
 
-  private calcActiveTilePositions () {
+  public pushHistoryState ({ from, toIdx }: Puzzle.TileStep) {
+    this.tileSteps.push({ from, toIdx })
+    history.pushState(this.tileSteps.length - 1, '')
+
+    console.log('push history state - ', history.state, this.tileSteps)
+  }
+
+  public popHistoryState () {
+    this.tileSteps.pop()
+      // history.go(-1)
+    if(this.tileSteps.length === 0) {
+      return;
+    } {
+      // history.forward()
+    }
+
+    history.replaceState(this.tileSteps.length - 1, '');
+
+    console.log('push history state - ', history.state, this.tileSteps)
+  }
+
+  private calcactiveTilesIdx () {
     enum PlaceInRow {
       Start = 'start',
       Middle = 'middle',
@@ -140,7 +166,7 @@ class State {
     if (row > 1) activeTiles.push(emptyPosition - this.matrixSize);
     if (row < this.matrixSize) activeTiles.push(emptyPosition + this.matrixSize);
 
-    this.activeTileIdx = activeTiles;
+    this.activeTilesIdx = activeTiles;
   }
 
   private dataToString (): string {
@@ -148,9 +174,10 @@ class State {
       "matrixSize": this.matrixSize,
       "tiles": this.tiles,
       "emptyTile": this.emptyTile,
-      "activeTileIdx": this.activeTileIdx
+      "activeTilesIdx": this.activeTilesIdx,
+      "tileSteps": this.tileSteps
     }
-    return JSON.stringify(state)
+    return JSON.stringify(state);
   }
 
   public get MatrixSize (): number {
@@ -158,15 +185,19 @@ class State {
   }
 
   public get Tiles (): Array<Puzzle.TileData> {
-    return this.tiles;
+    return [...this.tiles];
   }
 
   public get EmptyTile (): Puzzle.TileData {
-    return this.emptyTile;
+    return {...this.emptyTile};
   }
 
-  public get ActiveTileIdx () : Array<Number> {
-    return this.activeTileIdx;
+  public get ActiveTilesIdx () : Array<Number> {
+    return this.activeTilesIdx;
+  }
+
+  public get TileSteps (): Array<Puzzle.TileStep> {
+    return [...this.tileSteps];
   }
 
 }

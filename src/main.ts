@@ -1,7 +1,7 @@
 import '@/styles/main.scss'
 
 import State from '@/State'
-import { loadImage, drawTiles, drawShuffleTiles, tileClickHandler } from './utils'
+import { loadImage, drawTiles, drawShuffleTiles, tileClickHandler, putTileBack } from './utils'
 
 const startGame = function (control: HTMLInputElement, container: HTMLElement) {
   /* Указываем background-size для контейнера,
@@ -62,6 +62,12 @@ const init = function (params: Puzzle.AppParams): void {
     }
   })
 
+  // ходим по истории
+  window.addEventListener('popstate', function(evt) {
+    console.log('popstate -', evt.state)
+    if(Number.isInteger(evt.state)) putTileBack(evt.state)
+  });
+
 }
 
 
@@ -70,9 +76,9 @@ loadImage('https://cs.pikabu.ru/images/jobseeker/logo2.png')
     init({
       container: document.getElementById('puzzle-wrapper'),
       picture: 'https://cs.pikabu.ru/images/jobseeker/logo2.png',
-      startMatrixSize: 2
+      startMatrixSize: 5
     })
   })
   .catch((err) => {
-    console.log('image loaded fail -', err)
+    console.log(err)
   })

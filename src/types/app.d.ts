@@ -7,14 +7,19 @@ declare namespace Puzzle {
   }
 
   interface TilePosition {
-    idx: number;
-    top?: string;
-    left?: string;
+    idx: number | null;
+    top: string | null;
+    left: string | null;
   }
 
   interface TileData extends TilePosition {
     size?: string;
-    bgPosition?: string;
+    bgPosition: string;
+  }
+
+  interface TileStep {
+    from: TileData;
+    toIdx: number;
   }
 
 }
