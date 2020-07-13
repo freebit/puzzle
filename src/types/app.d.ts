@@ -2,8 +2,11 @@ declare namespace Puzzle {
 
   interface AppParams {
     container: HTMLElement;
+    control: HTMLInputElement;
     picture: string;
-    startMatrixSize?: number;
+    minMatrixSize: number;
+    maxMatrixSize: number;
+    startMatrixSize: number;
   }
 
   interface TilePosition {

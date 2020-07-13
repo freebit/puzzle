@@ -1,13 +1,13 @@
 import State from '@/State'
 
 export const loadImage = (url: string) => {
-  const image = new Image()
+  const image = new Image();
   const promise = new Promise((resolve, reject) => {
-    image.onload = () => resolve(image)
-    image.onerror = () => reject(Error(`Loading error - ${image.src}`))
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(Error(`Loading error - ${image.src}`));
   })
-  image.src = url
-  return promise
+  image.src = url;
+  return promise;
 }
 
 
@@ -19,10 +19,11 @@ export const drawTiles = (container: HTMLElement) => {
     const tile = document.createElement('div');
     tile.classList.add('tile');
     tile.setAttribute('idx', `${tileData.idx}`);
-    tile.style.width = tileData.size;
-    tile.style.height = tileData.size;
-    tile.style.top = tileData.top;
-    tile.style.left = tileData.left;
+    ({ size: tile.style.width,
+        size: tile.style.height,
+        top: tile.style.top,
+        left: tile.style.left
+    } = tileData);
     tile.style.backgroundPosition = tileData.bgPosition;
 
     documentFragment.appendChild(tile);
@@ -37,8 +38,8 @@ export const drawShuffleTiles = (container: HTMLElement) => {
 
   const childTiles = Array.from(container.childNodes);
   for(let i = 0; i < childTiles.length; i++) {
-    const childTile = childTiles[i] as HTMLElement
-    childTile.setAttribute('idx', `${State.Tiles[i].idx}`)
+    const childTile = childTiles[i] as HTMLElement;
+    childTile.setAttribute('idx', `${State.Tiles[i].idx}`);
     childTile.style.left = State.Tiles[i].left;
     childTile.style.top = State.Tiles[i].top;
 
@@ -53,14 +54,14 @@ export const tileClickHandler = (tile: HTMLElement) => {
 
   const onTransitionEnd = () => {
     tile.classList.remove('to-step');
-    tile.classList.remove('shake')
-    tile.removeEventListener('transitionend', onTransitionEnd)
+    tile.classList.remove('shake');
+    tile.removeEventListener('transitionend', onTransitionEnd);
   }
 
   // если можно двигать
   if(State.canMovieTile(tileIdx)) {
-    tile.addEventListener('transitionend', (evt) => onTransitionEnd())
-    tile.classList.add('to-step')
+    tile.addEventListener('transitionend', (evt) => onTransitionEnd());
+    tile.classList.add('to-step');
 
     // кэшируем
     const newEmptyTile: Puzzle.TileData = {
@@ -68,56 +69,76 @@ export const tileClickHandler = (tile: HTMLElement) => {
       left: tile.style.left,
       top: tile.style.top,
       bgPosition: tile.style.backgroundPosition
-    }
+    };
 
     // меняем позицию
     tile.style.left = State.EmptyTile.left;
     tile.style.top = State.EmptyTile.top;
     tile.setAttribute('idx', `${State.EmptyTile.idx}`);
 
-    State.pushHistoryState({from: newEmptyTile, toIdx: State.EmptyTile.idx})
-    State.updateAfterMove(newEmptyTile)
+    State.pushHistoryState({from: newEmptyTile, toIdx: State.EmptyTile.idx});
+    State.updateAfterMove(newEmptyTile);
   }
   // если нельзя двигать
   else {
-    tile.addEventListener('animationend', (evt) => onTransitionEnd())
+    tile.addEventListener('animationend', (evt) => onTransitionEnd());
     tile.classList.add('shake');
   }
 
 }
 
-export const putTileBack = (index: number) => {
-  // console.log('putTileBack -', data.toIdx)
-  const tileData = State.TileSteps[index]
-  if (!tileData) return
+export const putTileBack = () => {
+  const tileData = State.CurrentTileStep;
+  if (!tileData) return;
 
   const tileIdx = tileData.toIdx;
-  const tile: HTMLElement = document.querySelector(`[idx="${tileIdx}"]`)
+  const tile: HTMLElement = document.querySelector(`[idx="${tileIdx}"]`);
 
   const onTransitionEnd = () => {
     tile.classList.remove('to-step');
-    tile.removeEventListener('transitionend', onTransitionEnd)
+    tile.removeEventListener('transitionend', onTransitionEnd);
   }
-
   if (tile) {
-    tile.addEventListener('transitionend', (evt) => onTransitionEnd())
-    tile.classList.add('to-step')
-
+    tile.addEventListener('transitionend', (evt) => onTransitionEnd());
+    tile.classList.add('to-step');
     // кэшируем
     const newEmptyTile: Puzzle.TileData = {
       idx: tileIdx,
       left: tile.style.left,
       top: tile.style.top,
       bgPosition: tile.style.backgroundPosition
-    }
-
+    };
     // меняем позицию
     tile.style.left = tileData.from.left;
     tile.style.top = tileData.from.top;
     tile.setAttribute('idx', `${tileData.from.idx}`);
-
-    State.popHistoryState()
-    State.updateAfterMove(newEmptyTile)
+    State.updateAfterMove(newEmptyTile);
   }
-
 }
+
+
+export const startGame = function (control: HTMLInputElement, container: HTMLElement) {
+  /* Указываем background-size для контейнера,
+    а значит для всех плиток (нужно для правильной отрисовки картинки в плитке)
+  */
+  location.hash = '';
+  container.style.setProperty('--bg-size', `${100 * State.MatrixSize}%`);
+  control.disabled = true;
+
+  drawTiles(container);
+
+  setTimeout(() => {
+    State.shuffleTiles();
+    drawShuffleTiles(container);
+    State.saveToHash(true);
+    control.disabled = false;
+  }, 1000)
+}
+
+export const continueGame = function(control: HTMLInputElement, container: HTMLElement) {
+  control.value = State.MatrixSize.toString();
+  container.style.setProperty('--bg-size', `${100 * State.MatrixSize}%`);
+  drawTiles(container);
+  State.saveToHash(true);
+}
+

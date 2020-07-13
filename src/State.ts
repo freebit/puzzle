@@ -6,12 +6,14 @@ class State {
   private activeTilesIdx: Array<number>;
 
   private tileSteps: Array<Puzzle.TileStep>;
+  private tileStepsIterator: number;
 
   constructor() {
     this.matrixSize = null;
     this.tiles = [];
     this.activeTilesIdx = [];
     this.tileSteps = [];
+    this.tileStepsIterator = 0;
   }
 
   public checkHash (): boolean {
@@ -25,9 +27,7 @@ class State {
           tiles: this.tiles,
           emptyTile: this.emptyTile,
           activeTilesIdx: this.activeTilesIdx,
-          // tileSteps: this.tileSteps
         } = JSON.parse(decodedState))
-
         console.log('state from hash -', this)
         return true
 
@@ -42,12 +42,10 @@ class State {
 
   }
 
-  public async saveToHash () {
-    const hash = `#${btoa(this.dataToString())}`
-    history.pushState(null, '', hash)
-
-    // location.hash = btoa(this.dataToString())
-    console.log('save hash history state - ', window.history.state)
+  public async saveToHash (updateHistory: boolean) {
+    const hash = `#${btoa(this.dataToString())}`;
+    const state = updateHistory ? [] : (history.state || []);
+    history.replaceState(state, '', hash);
   }
 
   public initialize (matrixSize: number, puzzleSize: number) {
@@ -57,7 +55,7 @@ class State {
 
     const tileBordersSizePercent = 100 / (puzzleSize / 2);
     const tileSizePercent = 100 / (puzzleSize / (puzzleSize / matrixSize));
-    const bgStepPercent = 100 / (matrixSize - 1)
+    const bgStepPercent = 100 / (matrixSize - 1);
 
     this.tiles = [];
     for(let i = 0; i < rows; i++) {
@@ -72,7 +70,7 @@ class State {
         };
         // если это последняя колонка в последней строке
         if (idx === bottomRight) {
-          this.emptyTile = {...tileData}
+          this.emptyTile = {...tileData};
         } else {
           this.tiles.push(tileData);
         }
@@ -85,7 +83,7 @@ class State {
 
   public shuffleTiles () {
     // вернем пустой тайл в конец массива
-    this.tiles.push(this.emptyTile)
+    this.tiles.push(this.emptyTile);
 
     // делаем верхнюю левую плитку пустой
     this.emptyTile = {...this.tiles[0]};
@@ -94,7 +92,7 @@ class State {
     this.tiles.sort(() => Math.random() - 0.5);
 
     // извлекаем пустой тайл
-    this.tiles = this.tiles.filter((tile) => tile.idx !== this.emptyTile.idx)
+    this.tiles = this.tiles.filter((tile) => tile.idx !== this.emptyTile.idx);
     this.calcactiveTilesIdx();
   }
 
@@ -107,32 +105,16 @@ class State {
   }
 
   public updateAfterMove (newEmptyTile: Puzzle.TileData) {
-    const removableIndex = this.tiles.findIndex((tile) => tile.idx === newEmptyTile.idx)
+    const removableIndex = this.tiles.findIndex((tile) => tile.idx === newEmptyTile.idx);
     this.emptyTile.bgPosition = newEmptyTile.bgPosition;
     this.emptyTile = this.tiles.splice(removableIndex, 1, this.emptyTile)[0];
     this.calcactiveTilesIdx();
-    this.saveToHash();
+    this.saveToHash(false);
   }
 
   public pushHistoryState ({ from, toIdx }: Puzzle.TileStep) {
-    this.tileSteps.push({ from, toIdx })
-    history.pushState(this.tileSteps.length - 1, '')
-
-    console.log('push history state - ', history.state, this.tileSteps)
-  }
-
-  public popHistoryState () {
-    this.tileSteps.pop()
-      // history.go(-1)
-    if(this.tileSteps.length === 0) {
-      return;
-    } {
-      // history.forward()
-    }
-
-    history.replaceState(this.tileSteps.length - 1, '');
-
-    console.log('push history state - ', history.state, this.tileSteps)
+    this.tileSteps.push({ from, toIdx });
+    history.pushState(this.tileSteps, '');
   }
 
   private calcactiveTilesIdx () {
@@ -196,10 +178,10 @@ class State {
     return this.activeTilesIdx;
   }
 
-  public get TileSteps (): Array<Puzzle.TileStep> {
-    return [...this.tileSteps];
+  public get CurrentTileStep (): Puzzle.TileStep {
+    const currentStep = this.tileSteps.splice(history.state.length, 1)[0];
+    return currentStep ? {...currentStep} : undefined;
   }
-
 }
 
 export default new State()
