@@ -44,8 +44,8 @@ class State {
   public async saveToHash (updateHistory: boolean) {
     const hash = `#${btoa(this.dataToString())}`;
     const state = updateHistory ? { type: Puzzle.StateType.Common } : history.state;
-    history.replaceState(state, '', hash);
-    console.log('saveToHash replace state -', history.state);
+    history[updateHistory ? 'pushState' : 'replaceState'](state, '', hash);
+    updateHistory && console.log(`saveToHash replace state -`, history.state);
   }
 
   public initialize (matrixSize: number, puzzleSize: number) {
@@ -78,7 +78,7 @@ class State {
     }
 
     this.matrixSize = matrixSize;
-    this.calcactiveTilesIdx();
+    this.calcActiveTilesIdx();
   }
 
   public shuffleTiles () {
@@ -93,7 +93,7 @@ class State {
 
     // извлекаем пустой тайл
     this.tiles = this.tiles.filter((tile) => tile.idx !== this.emptyTile.idx);
-    this.calcactiveTilesIdx();
+    this.calcActiveTilesIdx();
   }
 
   public updateTileBgPosition (index: number, bgPosition: string) {
@@ -108,7 +108,7 @@ class State {
     const removableIndex = this.tiles.findIndex((tile) => tile.idx === newEmptyTile.idx);
     this.emptyTile.bgPosition = newEmptyTile.bgPosition;
     this.emptyTile = this.tiles.splice(removableIndex, 1, this.emptyTile)[0];
-    this.calcactiveTilesIdx();
+    this.calcActiveTilesIdx();
     this.saveToHash(false);
   }
 
@@ -116,12 +116,17 @@ class State {
     const step: TileStep = new TileStep(from, toIdx);
     this.tileSteps.push(step);
     history.pushState(this.tileSteps, '');
+    console.log('* Push state -', this.tileSteps, history.state.length);
   }
 
-  private calcactiveTilesIdx () {
+  public popHistoryState () {
+    console.log('* Pop state -', history.state, history.state.length);
+  }
+
+  private calcActiveTilesIdx () {
     enum PlaceInRow {
       Start = 'start',
-      Middle = 'middle',
+      Between = 'between',
       End = 'end'
     }
     const activeTiles = [];
@@ -131,13 +136,13 @@ class State {
     const div = emptyPosition / this.matrixSize;
 
     const row = Number.isInteger(div) ? div : Math.ceil(div);
-    const placeInRow = (mod === 1) ? PlaceInRow.Start : (mod === 0) ? PlaceInRow.End : PlaceInRow.Middle;
+    const placeInRow = (mod === 1) ? PlaceInRow.Start : (mod === 0) ? PlaceInRow.End : PlaceInRow.Between;
 
     switch (placeInRow) {
       case PlaceInRow.Start:
         activeTiles.push(emptyPosition + 1);
         break;
-      case PlaceInRow.Middle:
+      case PlaceInRow.Between:
         activeTiles.push(emptyPosition - 1);
         activeTiles.push(emptyPosition + 1);
         break;
@@ -180,8 +185,7 @@ class State {
   }
 
   public get CurrentTileStep (): TileStep {
-    const currentStep = this.tileSteps.splice(history.state.length, 1)[0];
-    return currentStep;
+    return this.tileSteps[history.state.length];
   }
 }
 

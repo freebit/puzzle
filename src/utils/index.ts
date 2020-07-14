@@ -76,22 +76,25 @@ export const tileClickHandler = (tile: HTMLElement) => {
     tile.style.top = State.EmptyTile.top;
     tile.setAttribute('idx', `${State.EmptyTile.idx}`);
 
-    State.pushHistoryState({from: newEmptyTile, toIdx: State.EmptyTile.idx});
+    State.pushHistoryState({ from: newEmptyTile, toIdx: State.EmptyTile.idx });
     State.updateAfterMove(newEmptyTile);
   }
   // если нельзя двигать
   else {
-    tile.addEventListener('animationend', (evt) => onTransitionEnd());
+    tile.addEventListener('animationend', () => onTransitionEnd());
     tile.classList.add('shake');
   }
 
 }
 
 export const moveTile = () => {
-  const { data: tileData } = State.CurrentTileStep;
-  if (!tileData) return;
+  const tileStep = State.CurrentTileStep;
+  if (!tileStep) return;
 
-  const tileIdx = tileData.toIdx;
+  const { data: tileStepData } = tileStep
+
+
+  const tileIdx = tileStepData.toIdx;
   const tile: HTMLElement = document.querySelector(`[idx="${tileIdx}"]`);
 
   const onTransitionEnd = () => {
@@ -109,25 +112,28 @@ export const moveTile = () => {
       bgPosition: tile.style.backgroundPosition
     };
     // меняем позицию
-    tile.style.left = tileData.from.left;
-    tile.style.top = tileData.from.top;
-    tile.setAttribute('idx', `${tileData.from.idx}`);
+    tile.style.left = tileStepData.from.left;
+    tile.style.top = tileStepData.from.top;
+    tile.setAttribute('idx', `${tileStepData.from.idx}`);
     State.updateAfterMove(newEmptyTile);
   }
 }
 
 export const popstateHandler = function (state: Puzzle.HistoryStateItem) {
-  if(!state || typeof state !== 'object')
+  if(!state || state === null || typeof state !== 'object') {
     throw Error('popstate handler - Not event data');
+    return;
+  }
 
-  if(state.type === Puzzle.StateType.Common) {
+  if(state.type && state.type === Puzzle.StateType.Common) {
     State.checkHash();
   }
 
-  if (state.type === Puzzle.StateType.TileStep) {
+  if (Array.isArray(state)) {
     moveTile();
-  }
 
+  }
+  State.popHistoryState();
 }
 
 
