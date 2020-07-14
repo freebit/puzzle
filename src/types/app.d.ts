@@ -25,4 +25,14 @@ declare namespace Puzzle {
     toIdx: number;
   }
 
+  interface HistoryStateItem {
+    type: StateType;
+    data?: TileStep | any;
+  }
+
+  export const enum StateType {
+    Common = 'common',
+    TileStep = 'step'
+  }
+
 }

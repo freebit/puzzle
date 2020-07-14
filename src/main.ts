@@ -4,12 +4,11 @@ import State from '@/State'
 import {
   loadImage,
   startGame, continueGame,
-  tileClickHandler, putTileBack } from './utils';
+  tileClickHandler, popstateHandler } from './utils';
 
 const init = function (params: Puzzle.AppParams): void {
 
-  const control = params.control;
-  const container = params.container;
+  const { control, container } = params;
   const containerWidth = container.offsetWidth;
 
   control.min = params.minMatrixSize.toString();
@@ -47,9 +46,7 @@ const init = function (params: Puzzle.AppParams): void {
   })
 
   // ходим по истории
-  window.addEventListener('popstate', function(evt) {
-    Array.isArray(evt.state) && putTileBack();
-  });
+  window.addEventListener('popstate', (evt) => popstateHandler(evt.state));
 
 }
 
@@ -63,8 +60,8 @@ loadImage('https://cs.pikabu.ru/images/jobseeker/logo2.png')
       minMatrixSize: 5,
       maxMatrixSize: 10,
       startMatrixSize: 5
-    })
+    });
   })
   .catch((err) => {
     console.log(err)
-  })
+  });

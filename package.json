@@ -2,7 +2,7 @@
   "name": "puzzle",
   "version": "1.0.0",
   "description": "",
-  "main": "script.js",
+  "main": "main.ts",
   "scripts": {
     "dev": "NODE_ENV=development webpack-dev-server --config=build/webpack.config.dev.js",
     "build": "NODE_ENV=production webpack --config=build/webpack.config.prod.js",

@@ -87,8 +87,8 @@ export const tileClickHandler = (tile: HTMLElement) => {
 
 }
 
-export const putTileBack = () => {
-  const tileData = State.CurrentTileStep;
+export const moveTile = () => {
+  const { data: tileData } = State.CurrentTileStep;
   if (!tileData) return;
 
   const tileIdx = tileData.toIdx;
@@ -114,6 +114,20 @@ export const putTileBack = () => {
     tile.setAttribute('idx', `${tileData.from.idx}`);
     State.updateAfterMove(newEmptyTile);
   }
+}
+
+export const popstateHandler = function (state: Puzzle.HistoryStateItem) {
+  if(!state || typeof state !== 'object')
+    throw Error('popstate handler - Not event data');
+
+  if(state.type === Puzzle.StateType.Common) {
+    State.checkHash();
+  }
+
+  if (state.type === Puzzle.StateType.TileStep) {
+    moveTile();
+  }
+
 }
 
 

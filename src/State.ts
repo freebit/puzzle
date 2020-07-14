@@ -1,3 +1,5 @@
+import TileStep from '@/types/TileStep';
+
 class State {
 
   private matrixSize: number;
@@ -5,15 +7,13 @@ class State {
   private emptyTile: Puzzle.TileData;
   private activeTilesIdx: Array<number>;
 
-  private tileSteps: Array<Puzzle.TileStep>;
-  private tileStepsIterator: number;
+  private tileSteps: Array<TileStep>;
 
   constructor() {
     this.matrixSize = null;
     this.tiles = [];
     this.activeTilesIdx = [];
     this.tileSteps = [];
-    this.tileStepsIterator = 0;
   }
 
   public checkHash (): boolean {
@@ -27,12 +27,11 @@ class State {
           tiles: this.tiles,
           emptyTile: this.emptyTile,
           activeTilesIdx: this.activeTilesIdx,
-        } = JSON.parse(decodedState))
-        console.log('state from hash -', this)
-        return true
+        } = JSON.parse(decodedState));
+        return true;
 
       } catch (e) {
-        alert('State not valid!')
+        alert('State not valid!');
         location.hash = '';
         return false;
       }
@@ -44,8 +43,9 @@ class State {
 
   public async saveToHash (updateHistory: boolean) {
     const hash = `#${btoa(this.dataToString())}`;
-    const state = updateHistory ? [] : (history.state || []);
+    const state = updateHistory ? { type: Puzzle.StateType.Common } : history.state;
     history.replaceState(state, '', hash);
+    console.log('saveToHash replace state -', history.state);
   }
 
   public initialize (matrixSize: number, puzzleSize: number) {
@@ -113,7 +113,8 @@ class State {
   }
 
   public pushHistoryState ({ from, toIdx }: Puzzle.TileStep) {
-    this.tileSteps.push({ from, toIdx });
+    const step: TileStep = new TileStep(from, toIdx);
+    this.tileSteps.push(step);
     history.pushState(this.tileSteps, '');
   }
 
@@ -178,9 +179,9 @@ class State {
     return this.activeTilesIdx;
   }
 
-  public get CurrentTileStep (): Puzzle.TileStep {
+  public get CurrentTileStep (): TileStep {
     const currentStep = this.tileSteps.splice(history.state.length, 1)[0];
-    return currentStep ? {...currentStep} : undefined;
+    return currentStep;
   }
 }
 
